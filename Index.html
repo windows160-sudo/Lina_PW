@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="description" content="Kalkulator maksymalnej długości liny na szpulce." />
+
+  <title>Kalkulator liny na szpulce</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <style>
+    :root{
+      --bg1:#070b14;
+      --bg2:#0b1220;
+      --card: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.12);
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#22d3ee;
+      --accent2:#a78bfa;
+      --danger:#fb7185;
+      --good:#34d399;
+      --radius: 22px;
+      --shadow: 0 18px 55px rgba(0,0,0,.45);
+    }
+    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(900px 500px at 20% 0%, rgba(34,211,238,.25), transparent 60%),
+        radial-gradient(700px 500px at 90% 0%, rgba(167,139,250,.20), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      padding: 16px;
+      padding-bottom: 24px;
+    }
+    .top{ margin: 6px 4px 12px; }
+    .title{ font-size: 20px; font-weight: 800; margin: 0 0 4px 0; letter-spacing: -.2px; }
+    .subtitle{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .resultCard{
+      margin-top: 12px;
+      background: linear-gradient(135deg, rgba(34,211,238,.18), rgba(167,139,250,.14));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      color: rgba(229,231,235,.85);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      padding: 7px 10px;
+      border-radius: 999px;
+    }
+    .big{
+      margin: 10px 0 2px;
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.0;
+    }
+    .big span{
+      font-size: 16px;
+      font-weight: 800;
+      color: rgba(229,231,235,.75);
+      margin-left: 8px;
+    }
+    .hint{ margin: 6px 0 0 0; font-size: 13px; color: rgba(229,231,235,.80); line-height: 1.45; }
+
+    .card{
+      margin-top: 14px;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      backdrop-filter: blur(12px);
+    }
+
+    .field{ margin-top: 12px; }
+    .label{
+      display:flex; justify-content:space-between; align-items:baseline;
+      gap: 10px; margin: 0 2px 6px;
+    }
+    .label b{ font-size: 13px; color: rgba(229,231,235,.92); }
+    .label small{ font-size: 12px; color: var(--muted); }
+
+    .input{
+      display:flex; align-items:center; gap:10px;
+      background: rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 18px;
+      padding: 12px 12px;
+      transition:.15s;
+    }
+    .input:focus-within{
+      border-color: rgba(34,211,238,.50);
+      box-shadow: 0 0 0 4px rgba(34,211,238,.12);
+    }
+    input{
+      width:100%;
+      border:none;
+      outline:none;
+      background: transparent;
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    input::placeholder{ color: rgba(229,231,235,.35); font-weight:600; }
+
+    .unit{
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(229,231,235,.68);
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space:nowrap;
+    }
+
+    .sliderWrap{
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,.10);
+    }
+    input[type="range"]{ width:100%; accent-color: var(--accent); }
+    .fillLine{
+      display:flex; justify-content:space-between;
+      margin-top: 6px;
+      color: rgba(229,231,235,.70);
+      font-size: 12px;
+    }
+    .fillVal{ font-weight: 900; color: rgba(229,231,235,.95); }
+
+    .btnRow{
+      display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px;
+    }
+    button{
+      border:none;
+      border-radius: 18px;
+      padding: 14px 14px;
+      font-size: 15px;
+      font-weight: 900;
+      cursor:pointer;
+    }
+    .btn{
+      color:#051219;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+    .ghost{
+      color: rgba(229,231,235,.92);
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.14);
+    }
+
+    .mini{ margin-top: 12px; display:grid; gap:10px; }
+    .line{
+      display:flex; justify-content:space-between; gap:10px;
+      padding: 12px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
+      font-size: 13px;
+      color: rgba(229,231,235,.78);
+    }
+    .line span:last-child{ color: rgba(229,231,235,.92); font-weight: 800; }
+
+    .err{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border:1px solid rgba(251,113,133,.28);
+      background: rgba(251,113,133,.12);
+      color: var(--danger);
+      font-weight: 900;
+      font-size: 13px;
+      display:none;
+    }
+
+    .foot{
+      margin-top: 12px;
+      font-size: 12px;
+      color: rgba(229,231,235,.55);
+      line-height: 1.45;
+      padding: 0 4px 6px;
+    }
+
+    .ok{ color: var(--good); font-weight: 900; }
+  </style>
+</head>
+
+<body>
+  <div class="top">
+    <p class="title">📏 Kalkulator liny na szpulce</p>
+    <p class="subtitle">
+      PWA offline. Liczy maksymalną długość liny na podstawie 4 parametrów.
+    </p>
+  </div>
+
+  <div class="resultCard">
+    <div class="badge">✅ Maksymalna długość liny</div>
+    <div class="big" id="outLen">— <span>m</span></div>
+    <p class="hint" id="outHint">Wpisz wartości poniżej.</p>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <div class="label"><b>Długość rdzenia</b><small>mm</small></div>
+      <div class="input"><input id="L" type="number" inputmode="decimal" min="0" step="0.1" placeholder="np. 200"><div class="unit">mm</div></div>
+    </div>
+
+    <div class="field">
+      <div class="label"><b>Średnica rdzenia</b><small>mm</small></div>
+      <div class="input"><input id="Dcore" type="number" inputmode="decimal" min="0" step="0.1" placeholder="np. 100"><div class="unit">mm</div></div>
+    </div>
+
+    <div class="field">
+      <div class="label"><b>Średnica czoła (max)</b><small>mm</small></div>
+      <div class="input"><input id="Douter" type="number" inputmode="decimal" min="0" step="0.1" placeholder="np. 300"><div class="unit">mm</div></div>
+    </div>
+
+    <div class="field">
+      <div class="label"><b>Średnica liny</b><small>mm</small></div>
+      <div class="input"><input id="drope" type="number" inputmode="decimal" min="0" step="0.1" placeholder="np. 10"><div class="unit">mm</div></div>
+    </div>
+
+    <div class="sliderWrap">
+      <div class="label" style="margin-bottom:8px">
+        <b>Upakowanie nawoju (fill)</b>
+        <small class="fillVal" id="fillVal">0.90</small>
+      </div>
+      <input id="fill" type="range" min="0.80" max="0.97" step="0.01" value="0.90">
+      <div class="fillLine"><span>0.80</span><span>0.90</span><span>0.97</span></div>
+    </div>
+
+    <div class="btnRow">
+      <button class="btn" onclick="calculate()">Oblicz</button>
+      <button class="ghost" onclick="resetAll()">Wyczyść</button>
+    </div>
+
+    <div class="err" id="err"></div>
+
+    <div class="mini">
+      <div class="line"><span>Objętość miejsca</span><span id="outVol">—</span></div>
+      <div class="line"><span>Pole przekroju</span><span id="outArea">—</span></div>
+      <div class="line"><span>Fill</span><span id="outFill">—</span></div>
+    </div>
+
+    <div class="foot">
+      <span class="ok">Offline:</span> po instalacji działa bez internetu.
+      <br><span class="ok">Tip:</span> luźny nawój → fill 0.85, równy nawój → 0.90–0.94.
+    </div>
+  </div>
+
+<script>
+  // Service Worker rejestracja (PWA)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js");
+    });
+  }
+
+  const $ = (id) => document.getElementById(id);
+
+  function fmt(num, digits=2){
+    if (!isFinite(num)) return "—";
+    return num.toLocaleString("pl-PL", {
+      maximumFractionDigits: digits,
+      minimumFractionDigits: digits
+    });
+  }
+
+  function showErr(msg){
+    const e = $("err");
+    e.style.display = "block";
+    e.textContent = msg;
+  }
+  function clearErr(){
+    const e = $("err");
+    e.style.display = "none";
+    e.textContent = "";
+  }
+
+  function calculate(){
+    clearErr();
+
+    const L_mm = parseFloat($("L").value);
+    const Dcore_mm = parseFloat($("Dcore").value);
+    const Douter_mm = parseFloat($("Douter").value);
+    const drope_mm = parseFloat($("drope").value);
+    const fill = parseFloat($("fill").value);
+
+    // jeśli nie wpisane
+    if ([L_mm, Dcore_mm, Douter_mm, drope_mm].some(v => !isFinite(v))){
+      $("outLen").innerHTML = `— <span>m</span>`;
+      $("outHint").textContent = "Wpisz wartości poniżej.";
+      $("outVol").textContent = "—";
+      $("outArea").textContent = "—";
+      $("outFill").textContent = "—";
+      return;
+    }
+
+    if ([L_mm, Dcore_mm, Douter_mm, drope_mm].some(v => v <= 0)){
+      showErr("Wszystkie wartości muszą być > 0.");
+      return;
+    }
+    if (Douter_mm <= Dcore_mm){
+      showErr("Średnica czoła musi być większa niż średnica rdzenia.");
+      return;
+    }
+
+    // mm -> m
+    const L = L_mm / 1000;
+    const Dcore = Dcore_mm / 1000;
+    const Douter = Douter_mm / 1000;
+    const d = drope_mm / 1000;
+
+    // Objętość przestrzeni
+    const V = Math.PI * L * (Math.pow(Douter/2,2) - Math.pow(Dcore/2,2)); // m^3
+    // Pole przekroju liny
+    const A = Math.PI * Math.pow(d/2,2); // m^2
+    // Długość
+    const len_m = (V / A) * fill;
+
+    $("outLen").innerHTML = `${fmt(len_m, 2)} <span>m</span>`;
+    $("outHint").innerHTML = `Przy fill=${fill.toFixed(2)} maksymalnie: <span class="ok">${fmt(len_m,2)} m</span>.`;
+
+    $("outVol").textContent = `${fmt(V * 1e6, 0)} cm³`;
+    $("outArea").textContent = `${fmt(A * 1e6, 1)} mm²`;
+    $("outFill").textContent = fill.toFixed(2);
+  }
+
+  function resetAll(){
+    ["L","Dcore","Douter","drope"].forEach(id => $(id).value = "");
+    $("fill").value = 0.90;
+    $("fillVal").textContent = "0.90";
+    clearErr();
+    calculate();
+  }
+
+  $("fill").addEventListener("input", () => {
+    $("fillVal").textContent = parseFloat($("fill").value).toFixed(2);
+    calculate();
+  });
+
+  ["L","Dcore","Douter","drope"].forEach(id => $(id).addEventListener("input", calculate));
+
+  calculate();
+</script>
+</body>
+</html>
